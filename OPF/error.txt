@@ -1,0 +1,10 @@
+??? Error using ==> cvx.times at 173
+Disciplined convex programming error:
+    Cannot perform the operation: {real affine} .* {invalid}
+
+Error in ==> cvx.mtimes at 36
+    z = feval( oper, x, y );
+
+Error in ==> General_Test_Case_beta_voltage_new_Sparse at 152
+    S{count+1}=sparse(S{count})+sparse((lambdak_M(count)-lambdak_m(count))*Y_n_a{count})+sparse((lambda_k_M(count)-lambda_k_m(count))*Y_n_r{count})+sparse((mu_k_M(count)-mu_k_m(count))*M{count}); 
+>> 

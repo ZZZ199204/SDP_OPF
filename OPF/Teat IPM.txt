@@ -1,0 +1,9 @@
+for i=1:14
+disp(i)
+(lambdak_M(i))*(trace((Y_n_a(:,:,i))*A)-P_k_Max(i)+P_d_k(i))
+(lambdak_m(i))*(trace((Y_n_a(:,:,i))*A)-P_k_Min(i)+P_d_k(i))
+(lambda_k_M(i))*(trace((Y_n_r(:,:,i))*A)-Q_k_Max(i)+Q_d_k(i))
+(lambda_k_m(i))*(trace((Y_n_r(:,:,i))*A)-Q_k_Min(i)+Q_d_k(i))
+(mu_k_M(i))*(trace((M(:,:,i))*A)-V_k_M(i))
+(mu_k_m(i))*(trace((M(:,:,i))*A)-V_k_m(i))
+end
