@@ -33,144 +33,139 @@ julSol.include(os.path.join("JuMP_src", "gensolverCont.jl")) # definition of Gen
 log.info(("Julia took {:..2f} seconds to start and include LASCOPF models.".format(profiler.get_interval())))
 #include "gurobi_c++.h" // includes definition of the GUROBI solver header file
 
-clc
-clear all;
-t0=tic;
-n=input('\nPlease Enter the particular IEEE Test Case You wish to run this Simulation for\nby indicating the number of buses.\nWarning:Valid Test Cases consist of 3, 14, 30, 57, 118 & 300 buses.\n');
-%% Read the Bus Admittance Matrix, Matrices of line conductance, susceptance
-%& shunt charging susceptance, Adjacency Matrix, Real & Reactive Power
-%upper & lower limits, Real & Reactive Load data, Generator Location data,
-%Generator Cost Coefficients and Number of Generators.
-if n==30:
-    Y_bus_r=xlsread('30bus_Ybus.xlsx','Sheet2','A1:AD30');
-    Y_bus_i=xlsread('30bus_Ybus.xlsx','Sheet3','A1:AD30');
-    Yline_G=xlsread('30bus_G.xlsx','Sheet1','B2:AE31');
-    Yline_B=xlsread('30bus_B.xlsx','Sheet1','B2:AE31');
-    Yshunt_B=xlsread('30bus_Bshunt.xlsx','Sheet1','B2:AE31');
-    Yconn=xlsread('30bus_Connectivity.xlsx','Sheet1','B2:AE31');
-    P_k_Max=xlsread('Limits.xlsx','30_Bus','B2:B31');
-    P_k_Min=xlsread('Limits.xlsx','30_Bus','C2:C31');
-    Q_k_Max=xlsread('Limits.xlsx','30_Bus','D2:D31');
-    Q_k_Min=xlsread('Limits.xlsx','30_Bus','E2:E31');
-    P_d_k=xlsread('30bus_load.xlsx','Sheet1','D2:D31');
-    Q_d_k=xlsread('30bus_load.xlsx','Sheet1','E2:E31');
-    G_conn=xlsread('Limits.xlsx','30_Bus','F2:F31');
-    c1=xlsread('Limits.xlsx','30','I2:I7');
-    c2=xlsread('Limits.xlsx','30','H2:H7');
-    c0=xlsread('Limits.xlsx','30','G2:G7');
-    V_k_Max=xlsread('Limits.xlsx','Voltage30','B2');
-    V_k_Min=xlsread('Limits.xlsx','Voltage30','C2');
-    reply=xlsread('Limits.xlsx','LineLimits','G+2');
-    g=6;
-elif n==14:
-    Y_bus_r=xlsread('14bus_Ybus.xlsx','Real','A1:N14');
-    Y_bus_i=xlsread('14bus_Ybus.xlsx','Imag','A1:N14');
-    Yline_G=xlsread('14bus_G.xlsx','Original','B2:O15');
-    Yline_B=xlsread('14bus_B.xlsx','Sheet1','B2:O15');
-    Yshunt_B=xlsread('14bus_shuntB.xlsx','Sheet1','B2:O15');
-    Yconn=xlsread('14bus_Connectivity.xlsx','Sheet1','B2:O15');
-    P_k_Max=[3.324;1.4;0;0;0;0;0;0;0;0;0;0;0;0];
-    P_k_Min=[0;0;0;0;0;0;0;0;0;0;0;0;0;0];
-    Q_k_Max=[.10;.5;.4;0;0;.24;0;.24;0;0;0;0;0;0];
-    Q_k_Min=[-.2;-.4;0;0;0;-.06;0;-.06;0;0;0;0;0;0];
-    P_d_k=[0;.217;.942;.478;.076;.112;0;0;.295;.09;.035;.061;.135;.149];
-    Q_d_k=[0;.127;.190;-.039;.016;.075;0;0;-.024;.058;.018;.016;.058;.05];
-    G_conn=[1;1;0;0;0;0;0;0;0;0;0;0;0;0];
-    c1=[2000;2000];
-    c2=[430.293;2500];
-    c0=[0;0];
-    V_k_Max=xlsread('Limits.xlsx','Voltage14','B2');
-    V_k_Min=xlsread('Limits.xlsx','Voltage14','C2');
-    reply=xlsread('Limits.xlsx','LineLimits','F2');
-    g=2;
-    
+netID = int(input('\nPlease Enter the particular IEEE Test Case You wish to run this Simulation for\nby indicating the number of buses.\nWarning:Valid Test Cases consist of 3, 14, 30, 57, 118 & 300 buses.\n')
+#Read the Bus Admittance Matrix, Matrices of line conductance, susceptance
+#shunt charging susceptance, Adjacency Matrix, Real & Reactive Power
+#upper & lower limits, Real & Reactive Load data, Generator Location data,
+#Generator Cost Coefficients and Number of Generators.
+if n == 30:
+    Y_bus_r_df = pd.read_excel('30bus_Ybus.xlsx', sheet_name = 'Sheet2','A1:AD30')
+    Y_bus_i_df = pd.read_excel('30bus_Ybus.xlsx', sheet_name = 'Sheet3','A1:AD30')
+    Yline_G_df = pd.read_excel('30bus_G.xlsx', sheet_name = 'Sheet1','B2:AE31')
+    Yline_B_df = pd.read_excel('30bus_B.xlsx', sheet_name = 'Sheet1','B2:AE31')
+    Yshunt_B_df = pd.read_excel('30bus_Bshunt.xlsx', sheet_name = 'Sheet1','B2:AE31')
+    Yconn_df = pd.read_excel('30bus_Connectivity.xlsx', sheet_name = 'Sheet1','B2:AE31')
+    P_k_Max_df = pd.read_excel('Limits.xlsx', sheet_name = '30_Bus','B2:B31')
+    P_k_Min_df = pd.read_excel('Limits.xlsx', sheet_name = '30_Bus','C2:C31')
+    Q_k_Max_df = pd.read_excel('Limits.xlsx', sheet_name = '30_Bus','D2:D31')
+    Q_k_Min_df = pd.read_excel('Limits.xlsx', sheet_name = '30_Bus','E2:E31')
+    P_d_k_df = pd.read_excel('30bus_load.xlsx', sheet_name = 'Sheet1','D2:D31')
+    Q_d_k_df = pd.read_excel('30bus_load.xlsx', sheet_name = 'Sheet1','E2:E31')
+    G_conn_df = pd.read_excel('Limits.xlsx', sheet_name = '30_Bus','F2:F31')
+    c1_df = pd.read_excel('Limits.xlsx', sheet_name = '30','I2:I7')
+    c2_df = pd.read_excel('Limits.xlsx', sheet_name = '30','H2:H7')
+    c0_df = pd.read_excel('Limits.xlsx', sheet_name = '30','G2:G7')
+    V_k_Max_df = pd.read_excel('Limits.xlsx', sheet_name = 'Voltage30','B2')
+    V_k_Min_df = pd.read_excel('Limits.xlsx', sheet_name = 'Voltage30','C2')
+    reply_df = pd.read_excel('Limits.xlsx', sheet_name = 'LineLimits','G+2')
+    g = 6
+elif n == 14:
+    Y_bus_r_df = pd.read_excel('14bus_Ybus.xlsx', sheet_name = 'Real','A1:N14')
+    Y_bus_i_df = pd.read_excel('14bus_Ybus.xlsx', sheet_name = 'Imag','A1:N14')
+    Yline_G_df = pd.read_excel('14bus_G.xlsx', sheet_name = 'Original','B2:O15')
+    Yline_B_df = pd.read_excel('14bus_B.xlsx', sheet_name = 'Sheet1','B2:O15')
+    Yshunt_B_df = pd.read_excel('14bus_shuntB.xlsx', sheet_name = 'Sheet1','B2:O15')
+    Yconn_df = pd.read_excel('14bus_Connectivity.xlsx', sheet_name = 'Sheet1','B2:O15')
+    P_k_Max = [3.324 1.4 0 0 0 0 0 0 0 0 0 0 0 0]
+    P_k_Min=[0;0;0;0;0;0;0;0;0;0;0;0;0;0]
+    Q_k_Max=[.10;.5;.4;0;0;.24;0;.24;0;0;0;0;0;0]
+    Q_k_Min=[-.2;-.4;0;0;0;-.06;0;-.06;0;0;0;0;0;0]
+    P_d_k=[0;.217;.942;.478;.076;.112;0;0;.295;.09;.035;.061;.135;.149]
+    Q_d_k=[0;.127;.190;-.039;.016;.075;0;0;-.024;.058;.018;.016;.058;.05]
+    G_conn=[1;1;0;0;0;0;0;0;0;0;0;0;0;0]
+    c1=[2000;2000]
+    c2=[430.293;2500]
+    c0=[0;0]
+    V_k_Max_df = pd.read_excel('Limits.xlsx', sheet_name = 'Voltage14','B2')
+    V_k_Min_df = pd.read_excel('Limits.xlsx', sheet_name = 'Voltage14','C2')
+    reply_df = pd.read_excel('Limits.xlsx', sheet_name = 'LineLimits','F2')
+    g = 2   
 elif n==57:
-    Y_bus_r=xlsread('57bus_Ybus.xlsx','Sheet2','A1:BE57');
-    Y_bus_i=xlsread('57bus_Ybus.xlsx','Sheet3','A1:BE57');
-    Yline_G=xlsread('57bus_G.xlsx','Sheet1','B2:BF58');
-    Yline_B=xlsread('57bus_B.xlsx','Sheet1','B2:BF58');
-    Yshunt_B=xlsread('57bus_Bshunt.xlsx','Sheet1','A1:BE57');
-    Yconn=xlsread('57bus_Connectivity.xlsx','Sheet1','B2:BF58');
-    P_k_Max=xlsread('Limits.xlsx','57_Bus','B2:B58');
-    P_k_Min=xlsread('Limits.xlsx','57_Bus','C2:C58');
-    Q_k_Max=xlsread('Limits.xlsx','57_Bus','D2:D58');
-    Q_k_Min=xlsread('Limits.xlsx','57_Bus','E2:E58');
-    P_d_k=xlsread('57bus_load.xlsx','Load Records','L3:L59');
-    Q_d_k=xlsread('57bus_load.xlsx','Load Records','M3:M59');
-    G_conn=xlsread('Limits.xlsx','57_Bus','F2:F58');
-    c1=xlsread('Limits.xlsx','57','I2:I8');
-    c2=xlsread('Limits.xlsx','57','H2:H8');
-    c0=xlsread('Limits.xlsx','57','G2:G8');
-    V_k_Max=xlsread('Limits.xlsx','Voltage57','B2');
-    V_k_Min=xlsread('Limits.xlsx','Voltage57','C2');
-    reply=xlsread('Limits.xlsx','LineLimits','E2');
-    g=7;
+    Y_bus_r_df = pd.read_excel('57bus_Ybus.xlsx', sheet_name = 'Sheet2','A1:BE57');
+    Y_bus_i_df = pd.read_excel('57bus_Ybus.xlsx', sheet_name = 'Sheet3','A1:BE57');
+    Yline_G_df = pd.read_excel('57bus_G.xlsx', sheet_name = 'Sheet1','B2:BF58');
+    Yline_B_df = pd.read_excel('57bus_B.xlsx', sheet_name = 'Sheet1','B2:BF58');
+    Yshunt_B_df = pd.read_excel('57bus_Bshunt.xlsx', sheet_name = 'Sheet1','A1:BE57');
+    Yconn_df = pd.read_excel('57bus_Connectivity.xlsx', sheet_name = 'Sheet1','B2:BF58');
+    P_k_Max_df = pd.read_excel('Limits.xlsx', sheet_name = '57_Bus','B2:B58');
+    P_k_Min_df = pd.read_excel('Limits.xlsx', sheet_name = '57_Bus','C2:C58');
+    Q_k_Max_df = pd.read_excel('Limits.xlsx', sheet_name = '57_Bus','D2:D58');
+    Q_k_Min_df = pd.read_excel('Limits.xlsx', sheet_name = '57_Bus','E2:E58');
+    P_d_k_df = pd.read_excel('57bus_load.xlsx', sheet_name = 'Load Records','L3:L59');
+    Q_d_k_df = pd.read_excel('57bus_load.xlsx', sheet_name = 'Load Records','M3:M59');
+    G_conn_df = pd.read_excel('Limits.xlsx', sheet_name = '57_Bus','F2:F58');
+    c1_df = pd.read_excel('Limits.xlsx', sheet_name = '57','I2:I8');
+    c2_df = pd.read_excel('Limits.xlsx', sheet_name = '57','H2:H8');
+    c0_df = pd.read_excel('Limits.xlsx', sheet_name = '57','G2:G8');
+    V_k_Max_df = pd.read_excel('Limits.xlsx', sheet_name = 'Voltage57','B2');
+    V_k_Min_df = pd.read_excel('Limits.xlsx', sheet_name = 'Voltage57','C2');
+    reply_df = pd.read_excel('Limits.xlsx', sheet_name = 'LineLimits','E2');
+    g = 7;
 elif n==118:
-    Y_bus_r=xlsread('118bus_Ybus.xlsx','Sheet2','A1:DN118');
-    Y_bus_i=xlsread('118bus_Ybus.xlsx','Sheet3','A1:DN118');
-    Yline_G=xlsread('118bus_G.xlsx','Sheet1','B2:DO119');
-    Yline_B=xlsread('118bus_B.xlsx','Sheet1','B2:DO119');
-    Yshunt_B=xlsread('118bus_Bshunt.xlsx','Sheet1','B2:DO119');
-    Yconn=xlsread('118bus_Connectivity.xlsx','Sheet1','B2:DO119');
-    P_k_Max=xlsread('Limits.xlsx','118_Bus','B2:B119');
-    P_k_Min=xlsread('Limits.xlsx','118_Bus','C2:C119');
-    Q_k_Max=xlsread('Limits.xlsx','118_Bus','D2:D119');
-    Q_k_Min=xlsread('Limits.xlsx','118_Bus','E2:E119');
-    P_d_k=xlsread('118bus_load.xlsx','Load Records','L3:L120');
-    Q_d_k=xlsread('118bus_load.xlsx','Load Records','M3:M120');
-    G_conn=xlsread('Limits.xlsx','118_Bus','F2:F119');
-    c1=xlsread('Limits.xlsx','118','I2:I55');
-    c2=xlsread('Limits.xlsx','118','H2:H55');
-    c0=xlsread('Limits.xlsx','118','G2:G55');
-    V_k_Max=xlsread('Limits.xlsx','Voltage118','B2');
-    V_k_Min=xlsread('Limits.xlsx','Voltage118','C2');
-    reply=xlsread('Limits.xlsx','LineLimits','D2');
-    g=54;
-elif n==300:
-    Y_bus_r=xlsread('300bus_Ybus.xlsx','Sheet2','A1:KN300');
-    Y_bus_i=xlsread('300bus_Ybus.xlsx','Sheet3','A1:KN300');
-    Yline_G=xlsread('300bus_G.xlsx','Sheet1','B2:KO301');
-    Yline_B=xlsread('300bus_B.xlsx','Sheet1','B2:KO301');
-    Yshunt_B=xlsread('300bus_Bshunt.xlsx','Sheet1','B2:KO301');
-    Yconn=xlsread('300bus_Connectivity.xlsx','Sheet1','B2:KO301');
-    P_k_Max=xlsread('Limits.xlsx','300_Bus','B2:B301');
-    P_k_Min=xlsread('Limits.xlsx','300_Bus','C2:C301');
-    Q_k_Max=xlsread('Limits.xlsx','300_Bus','D2:D301');
-    Q_k_Min=xlsread('Limits.xlsx','300_Bus','E2:E301');
-    P_d_k=xlsread('300bus_load.xlsx','Load Records','L3:L302');
-    Q_d_k=xlsread('300bus_load.xlsx','Load Records','M3:M302');
-    G_conn=xlsread('Limits.xlsx','300_Bus','F2:F301');
-    c1=xlsread('Limits.xlsx','300','I2:I70');
-    c2=xlsread('Limits.xlsx','300','H2:H70');
-    c0=xlsread('Limits.xlsx','300','G2:G70');
-    V_k_Max=xlsread('Limits.xlsx','Voltage300','B2');
-    V_k_Min=xlsread('Limits.xlsx','Voltage300','C2');
-    reply=xlsread('Limits.xlsx','LineLimits','C2');
-    g=69;
+    Y_bus_r_df = pd.read_excel('118bus_Ybus.xlsx', sheet_name = 'Sheet2','A1:DN118');
+    Y_bus_i_df = pd.read_excel('118bus_Ybus.xlsx', sheet_name = 'Sheet3','A1:DN118');
+    Yline_G_df = pd.read_excel('118bus_G.xlsx', sheet_name = 'Sheet1','B2:DO119');
+    Yline_B_df = pd.read_excel('118bus_B.xlsx', sheet_name = 'Sheet1','B2:DO119');
+    Yshunt_B_df = pd.read_excel('118bus_Bshunt.xlsx', sheet_name = 'Sheet1','B2:DO119');
+    Yconn_df = pd.read_excel('118bus_Connectivity.xlsx', sheet_name = 'Sheet1','B2:DO119');
+    P_k_Max_df = pd.read_excel('Limits.xlsx', sheet_name = '118_Bus','B2:B119');
+    P_k_Min_df = pd.read_excel('Limits.xlsx', sheet_name = '118_Bus','C2:C119');
+    Q_k_Max_df = pd.read_excel('Limits.xlsx', sheet_name = '118_Bus','D2:D119');
+    Q_k_Min_df = pd.read_excel('Limits.xlsx', sheet_name = '118_Bus','E2:E119');
+    P_d_k_df = pd.read_excel('118bus_load.xlsx', sheet_name = 'Load Records','L3:L120');
+    Q_d_k_df = pd.read_excel('118bus_load.xlsx', sheet_name = 'Load Records','M3:M120');
+    G_conn_df = pd.read_excel('Limits.xlsx', sheet_name = '118_Bus','F2:F119');
+    c1_df = pd.read_excel('Limits.xlsx', sheet_name = '118','I2:I55');
+    c2_df = pd.read_excel('Limits.xlsx', sheet_name = '118','H2:H55');
+    c0_df = pd.read_excel('Limits.xlsx', sheet_name = '118','G2:G55');
+    V_k_Max_df = pd.read_excel('Limits.xlsx', sheet_name = 'Voltage118','B2');
+    V_k_Min_df = pd.read_excel('Limits.xlsx', sheet_name = 'Voltage118','C2');
+    reply_df = pd.read_excel('Limits.xlsx', sheet_name = 'LineLimits','D2');
+    g = 54;
+elif n == 300:
+    Y_bus_r_df = pd.read_excel('300bus_Ybus.xlsx','Sheet2','A1:KN300');
+    Y_bus_i_df = pd.read_excel('300bus_Ybus.xlsx','Sheet3','A1:KN300');
+    Yline_G_df = pd.read_excel('300bus_G.xlsx','Sheet1','B2:KO301');
+    Yline_B_df = pd.read_excel('300bus_B.xlsx','Sheet1','B2:KO301');
+    Yshunt_B_df = pd.read_excel('300bus_Bshunt.xlsx','Sheet1','B2:KO301');
+    Yconn_df = pd.read_excel('300bus_Connectivity.xlsx','Sheet1','B2:KO301');
+    P_k_Max_df = pd.read_excel('Limits.xlsx','300_Bus','B2:B301');
+    P_k_Min_df = pd.read_excel('Limits.xlsx','300_Bus','C2:C301');
+    Q_k_Max_df = pd.read_excel('Limits.xlsx','300_Bus','D2:D301');
+    Q_k_Min_df = pd.read_excel('Limits.xlsx','300_Bus','E2:E301');
+    P_d_k_df = pd.read_excel('300bus_load.xlsx','Load Records','L3:L302');
+    Q_d_k_df = pd.read_excel('300bus_load.xlsx','Load Records','M3:M302');
+    G_conn_df = pd.read_excel('Limits.xlsx','300_Bus','F2:F301');
+    c1_df = pd.read_excel('Limits.xlsx','300','I2:I70');
+    c2_df = pd.read_excel('Limits.xlsx','300','H2:H70');
+    c0_df = pd.read_excel('Limits.xlsx','300','G2:G70');
+    V_k_Max_df = pd.read_excel('Limits.xlsx','Voltage300','B2');
+    V_k_Min_df = pd.read_excel('Limits.xlsx','Voltage300','C2');
+    reply_df = pd.read_excel('Limits.xlsx','LineLimits','C2');
+    g = 69;
  elif n==3:
-    Y_bus_r=xlsread('3bus_Ybus.xlsx','Sheet2','A1:C3');
-    Y_bus_i=xlsread('3bus_Ybus.xlsx','Sheet3','A1:C3');
-    Yline_G=xlsread('3bus_G.xlsx','Sheet1','A1:C3');
-    Yline_B=xlsread('3bus_B.xlsx','Sheet1','A1:C3');
-    Yshunt_B=xlsread('3bus_Bshunt.xlsx','Sheet1','A1:C3');
-    Yconn=xlsread('3bus_Connectivity.xlsx','Sheet1','A1:C3');
-    P_k_Max=xlsread('Limits.xlsx','3_Bus','B2');
-    P_k_Min=xlsread('Limits.xlsx','3_Bus','C2');
-    Q_k_Max=xlsread('Limits.xlsx','3_Bus','D2');
-    Q_k_Min=xlsread('Limits.xlsx','3_Bus','E2');
-    P_d_k=xlsread('3bus_load.xlsx','Sheet1','D2:D4');
-    Q_d_k=xlsread('3bus_load.xlsx','Sheet1','E2:E4');
-    G_conn=xlsread('Limits.xlsx','3_Bus','F2:F4');
-    c1=xlsread('Limits.xlsx','3','I2');
-    c2=xlsread('Limits.xlsx','3','H2');
-    c0=xlsread('Limits.xlsx','3','G2');
-    V_k_Max=xlsread('Limits.xlsx','Voltage3','B2');
-    V_k_Min=xlsread('Limits.xlsx','Voltage3','C2');
-    reply=xlsread('Limits.xlsx','LineLimits','B2');
-    g=1;
+    Y_bus_r_df = pd.read_excel('3bus_Ybus.xlsx','Sheet2','A1:C3');
+    Y_bus_i_df = pd.read_excel('3bus_Ybus.xlsx','Sheet3','A1:C3');
+    Yline_G_df = pd.read_excel('3bus_G.xlsx','Sheet1','A1:C3');
+    Yline_B_df = pd.read_excel('3bus_B.xlsx','Sheet1','A1:C3');
+    Yshunt_B_df = pd.read_excel('3bus_Bshunt.xlsx','Sheet1','A1:C3');
+    Yconn_df = pd.read_excel('3bus_Connectivity.xlsx','Sheet1','A1:C3');
+    P_k_Max_df = pd.read_excel('Limits.xlsx','3_Bus','B2');
+    P_k_Min_df = pd.read_excel('Limits.xlsx','3_Bus','C2');
+    Q_k_Max_df = pd.read_excel('Limits.xlsx','3_Bus','D2');
+    Q_k_Min_df = pd.read_excel('Limits.xlsx','3_Bus','E2');
+    P_d_k_df = pd.read_excel('3bus_load.xlsx','Sheet1','D2:D4');
+    Q_d_k_df = pd.read_excel('3bus_load.xlsx','Sheet1','E2:E4');
+    G_conn_df = pd.read_excel('Limits.xlsx','3_Bus','F2:F4');
+    c1_df = pd.read_excel('Limits.xlsx','3','I2');
+    c2_df = pd.read_excel('Limits.xlsx','3','H2');
+    c0_df = pd.read_excel('Limits.xlsx','3','G2');
+    V_k_Max_df = pd.read_excel('Limits.xlsx','Voltage3','B2');
+    V_k_Min_df = pd.read_excel('Limits.xlsx','Voltage3','C2');
+    reply_df = pd.read_excel('Limits.xlsx','LineLimits','B2');
+    g = 1
 else:
-    fprintf('Test case with this particular number of buses is not supported by the Program\n');
-end
+    log.info('Test case with this particular number of buses is not supported by the Program\n')
 fprintf('Time taken to read %3.5f',toc(t0));
 %Maximum and Minimum Bus Voltage Limits.
 %V_k_Max=1.06*ones(n,1);
